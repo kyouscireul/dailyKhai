@@ -176,10 +176,10 @@
                 // HEADER FIX: Padding = Safe Area (or 20px) + Extra 20px
                 e('div', { 
                     className: "bg-white shadow-sm sticky top-0 z-10",
-                    style: { paddingTop: "max(25px, env(safe-area-inset-top))" } 
+                    style: { paddingTop: "max(35px, env(safe-area-inset-top))" } 
                 },
-                    e('div', { className: "max-w-md mx-auto px-4 pt-4 pb-2" },
-                        e('div', { className: "flex justify-between items-center mb-4" },
+                    e('div', { className: "max-w-md mx-auto px-5 pt-5 pb-2" },
+                        e('div', { className: "flex justify-between items-center mb-6" },
                             e('div', null,
                                 e('h1', { className: "text-2xl font-black text-slate-800 tracking-tight" }, "Khai's Routine"),
                                 e('p', { className: "text-slate-500 text-sm font-medium" }, level === 1 ? 'Bare Minimum' : level === 2 ? 'Growth Mode' : 'Monk Mode')
