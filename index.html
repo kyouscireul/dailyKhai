@@ -26,7 +26,7 @@
     
     <!-- Theme Color for Chrome/Android -->
     <meta name="theme-color" content="#F8FAFC">
-    
+
 </head>
 <body class="bg-slate-50">
     <div id="root"></div>
@@ -424,6 +424,21 @@
 
         const root = ReactDOM.createRoot(document.getElementById("root"));
         root.render(e(RoutineApp));
+    </script>
+
+    <script>
+        // Register Service Worker for PWA support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
