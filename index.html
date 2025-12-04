@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Viewport fit cover for full screen notch support -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Khai's Routine</title>
     
     <!-- PWA Settings -->
@@ -12,12 +13,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="icon.png">
 
-    <!-- Service Worker Registration -->
+    <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(reg => console.log('SW Registered!', reg))
-                .catch(err => console.log('SW Failed:', err));
+            navigator.serviceWorker.register('./service-worker.js').catch(err => console.log('SW Failed:', err));
         }
     </script>
     
@@ -26,9 +25,7 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <style>
-        body { -webkit-tap-highlight-color: transparent; }
-    </style>
+    <style> body { -webkit-tap-highlight-color: transparent; } </style>
 </head>
 <body class="bg-slate-50 select-none">
     <div id="root"></div>
@@ -37,12 +34,12 @@
         const { useState, useEffect, createElement } = React;
         const e = createElement;
 
-        // --- ICONS ---
+        // --- ICONS (FIXED: Using 'props' to avoid variable conflict) ---
         const Icon = ({ children, size = 24, className = "", ...props }) => {
             return e('svg', { xmlns: "http://www.w3.org/2000/svg", width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: className, ...props }, children);
         };
         
-        // Fixed: Renamed arguments from 'e' to 'props' to avoid shadowing global 'e' (createElement)
+        // Corrected definitions using 'e(Icon, props, ...)'
         const lucideReact = {
             Sun: (props) => e(Icon, props, e("circle", { cx: 12, cy: 12, r: 4 }), e("path", { d: "M12 2v2" }), e("path", { d: "M12 20v2" }), e("path", { d: "m4.93 4.93 1.41 1.41" }), e("path", { d: "m17.66 17.66 1.41 1.41" }), e("path", { d: "M2 12h2" }), e("path", { d: "M20 12h2" }), e("path", { d: "m6.34 17.66-1.41 1.41" }), e("path", { d: "m19.07 4.93-1.41 1.41" })),
             CloudSun: (props) => e(Icon, props, e("path", { d: "M12 2v2" }), e("path", { d: "m4.93 4.93 1.41 1.41" }), e("path", { d: "M20 12h2" }), e("path", { d: "m19.07 4.93-1.41 1.41" }), e("path", { d: "M15.947 12.65a4 4 0 0 0-5.925-4.128" }), e("path", { d: "M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z" })),
@@ -70,8 +67,6 @@
         };
         const { Sun, CloudSun, Sunset, Moon, CheckCircle, Circle, RefreshCw, Trophy, Heart, Coffee, Briefcase, Gamepad2, BookOpen, Users, MapPin, Code, Phone, Utensils, Home, Zap, Flame, MessageCircleHeart, Film, ListTodo, Award, Download } = lucideReact;
 
-        // --- HELPER COMPONENTS (Moved outside RoutineApp for safety and performance) ---
-        
         const getTypeIcon = (type) => {
             if(type === 'prayer') return e('div', { className: "text-[10px] font-bold border border-slate-300 rounded px-1 text-slate-500" }, "PRAY");
             if(type === 'mosque') return e('div', { className: "flex items-center gap-1 text-[10px] font-bold bg-green-50 text-green-700 border border-green-200 rounded px-1" }, e(MapPin, { size: 10 }), " MOSQUE");
@@ -116,18 +111,12 @@
             )
         );
 
-        // --- MAIN APP ---
-
         const RoutineApp = () => {
             const [level, setLevel] = useState(2);
             const [deferredPrompt, setDeferredPrompt] = useState(null);
             
-            // PWA Install Handler
             useEffect(() => {
-                const handler = (e) => {
-                    e.preventDefault();
-                    setDeferredPrompt(e);
-                };
+                const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); };
                 window.addEventListener('beforeinstallprompt', handler);
                 return () => window.removeEventListener('beforeinstallprompt', handler);
             }, []);
@@ -141,11 +130,7 @@
                 }
             };
 
-            const defaultRoutines = {
-                1: { morning: [{ id: 'm1', text: 'Wake 6 AM & Subuh', completed: false, type: 'core' }, { id: 'm2', text: 'Morning Focus', completed: false, subtext: 'Run/Workout/Work/Chores', type: 'flex' }, { id: 'm3', text: 'Bath & Brunch', completed: false, type: 'restore' }], afternoon: [{ id: 'a1', text: 'Zohor Prayer', completed: false, subtext: "Don't delay", type: 'prayer' }, { id: 'a2', text: 'Check in w/ Alia', completed: false, subtext: "How are you feeling?", type: 'heart-sm' }, { id: 'a3', text: 'Flexible Time', completed: false, subtext: 'Anime, Games, Light Work', type: 'chill' }], evening: [{ id: 'e1', text: 'Asar Prayer', completed: false, subtext: "Don't delay", type: 'prayer' }, { id: 'e2', text: 'Finish up work', completed: false, type: 'work' }, { id: 'e3', text: 'Early Dinner', completed: false, type: 'restore' }, { id: 'e4', text: 'Organize / Tidy up', completed: false, type: 'core' }], night: [{ id: 'n1', text: 'Maghrib Prayer', completed: false, type: 'prayer' }, { id: 'n2', text: 'Leisure / Assignments', completed: false, subtext: 'With friends or Alia', type: 'social' }, { id: 'n3', text: 'Isyak Prayer', completed: false, type: 'prayer' }, { id: 'n4', text: 'Meeting', completed: false, type: 'work' }, { id: 'n5', text: 'Time with Alia', completed: false, type: 'social' }] },
-                2: { morning: [{ id: 'l2_m1', text: 'Wake before Subuh', completed: false, type: 'core', highlight: true }, { id: 'l2_m2', text: 'Subuh Prayer', completed: false, type: 'prayer' }, { id: 'l2_m3', text: 'Run / Workout', completed: false, subtext: 'Get outside immediately', type: 'fitness' }, { id: 'l2_m4', text: 'Bath & Brunch', completed: false, type: 'restore' }], work_block: [{ id: 'l2_w1', text: 'Degree Work', completed: false, subtext: 'Focus session', type: 'work' }, { id: 'l2_w2', text: 'Side Project (Dev)', completed: false, type: 'code' }], afternoon: [{ id: 'l2_a1', text: 'Zohor @ Mosque', completed: false, subtext: "Go out", type: 'mosque' }, { id: 'l2_a2', text: 'Check in w/ Alia', completed: false, type: 'heart-sm' }, { id: 'l2_a3', text: 'Chores', completed: false, type: 'home' }, { id: 'l2_a4', text: 'Afternoon Work', completed: false, type: 'work' }], evening: [{ id: 'l2_e1', text: 'Asar @ Mosque', completed: false, type: 'mosque' }, { id: 'l2_e2', text: 'Prepare Dinner', completed: false, subtext: 'Cook healthy', type: 'food' }, { id: 'l2_e3', text: 'Work Wrap-up', completed: false, type: 'work' }], night: [{ id: 'l2_n1', text: 'Maghrib Prayer', completed: false, type: 'prayer' }, { id: 'l2_n2', text: 'Recite Quran', completed: false, type: 'spirit' }, { id: 'l2_n3', text: 'Active Leisure', completed: false, subtext: "Film / Series", type: 'film' }, { id: 'l2_n4', text: 'Call Parents', completed: false, type: 'social-call' }, { id: 'l2_n5', text: 'Isyak Prayer', completed: false, type: 'prayer' }, { id: 'l2_n6', text: 'Time with Alia', completed: false, type: 'social' }] },
-                3: { morning: [{ id: 'l3_m1', text: 'Wake before Subuh', completed: false, type: 'core', highlight: true }, { id: 'l3_m2', text: 'Subuh @ MOSQUE', completed: false, type: 'mosque' }, { id: 'l3_m3', text: 'Hard Workout', completed: false, subtext: 'NON-NEGOTIABLE', type: 'fitness-hard' }, { id: 'l3_m4', text: 'Bath & Brunch', completed: false, type: 'restore' }], work_block: [{ id: 'l3_w1', text: 'Degree Work', completed: false, subtext: 'Deep focus', type: 'work' }, { id: 'l3_w2', text: 'Side Project', completed: false, subtext: 'Build & Ship', type: 'code' }], afternoon: [{ id: 'l3_a1', text: 'Zohor @ MOSQUE', completed: false, type: 'mosque' }, { id: 'l3_a2', text: 'Check in w/ Alia', completed: false, type: 'heart-sm' }, { id: 'l3_a3', text: 'Chores', completed: false, type: 'home' }, { id: 'l3_a4', text: 'Afternoon Work', completed: false, type: 'work' }], evening: [{ id: 'l3_e1', text: 'Asar @ MOSQUE', completed: false, type: 'mosque' }, { id: 'l3_e2', text: 'Prepare Dinner', completed: false, type: 'food' }, { id: 'l3_e3', text: 'Work Wrap-up', completed: false, type: 'work' }], night: [{ id: 'l3_n1', text: 'Maghrib @ MOSQUE', completed: false, type: 'mosque' }, { id: 'l3_n2', text: 'Recite Quran', completed: false, type: 'spirit' }, { id: 'l3_n3', text: 'EXTRA WORK', completed: false, subtext: "No games. Pure progress.", type: 'grind' }, { id: 'l3_n4', text: 'Isyak @ MOSQUE', completed: false, type: 'mosque' }, { id: 'l3_n5', text: 'Time with Alia', completed: false, type: 'social' }] }
-            };
+            const defaultRoutines={1:{morning:[{id:"m1",text:"Wake 6 AM & Subuh",completed:!1,type:"core"},{id:"m2",text:"Morning Focus",completed:!1,subtext:"Run/Workout/Work/Chores",type:"flex"},{id:"m3",text:"Bath & Brunch",completed:!1,type:"restore"}],afternoon:[{id:"a1",text:"Zohor Prayer",completed:!1,subtext:"Don't delay",type:"prayer"},{id:"a2",text:"Check in w/ Alia",completed:!1,subtext:"How are you feeling?",type:"heart-sm"},{id:"a3",text:"Flexible Time",completed:!1,subtext:"Anime, Games, Light Work",type:"chill"}],evening:[{id:"e1",text:"Asar Prayer",completed:!1,subtext:"Don't delay",type:"prayer"},{id:"e2",text:"Finish up work",completed:!1,type:"work"},{id:"e3",text:"Early Dinner",completed:!1,type:"restore"},{id:"e4",text:"Organize / Tidy up",completed:!1,type:"core"}],night:[{id:"n1",text:"Maghrib Prayer",completed:!1,type:"prayer"},{id:"n2",text:"Leisure / Assignments",completed:!1,subtext:"With friends or Alia",type:"social"},{id:"n3",text:"Isyak Prayer",completed:!1,type:"prayer"},{id:"n4",text:"Meeting",completed:!1,type:"work"},{id:"n5",text:"Time with Alia",completed:!1,type:"social"}]},2:{morning:[{id:"l2_m1",text:"Wake before Subuh",completed:!1,type:"core",highlight:!0},{id:"l2_m2",text:"Subuh Prayer",completed:!1,type:"prayer"},{id:"l2_m3",text:"Run / Workout",completed:!1,subtext:"Get outside immediately",type:"fitness"},{id:"l2_m4",text:"Bath & Brunch",completed:!1,type:"restore"}],work_block:[{id:"l2_w1",text:"Degree Work",completed:!1,subtext:"Focus session",type:"work"},{id:"l2_w2",text:"Side Project (Dev)",completed:!1,type:"code"}],afternoon:[{id:"l2_a1",text:"Zohor @ Mosque",completed:!1,subtext:"Go out",type:"mosque"},{id:"l2_a2",text:"Check in w/ Alia",completed:!1,type:"heart-sm"},{id:"l2_a3",text:"Chores",completed:!1,type:"home"},{id:"l2_a4",text:"Afternoon Work",completed:!1,type:"work"}],evening:[{id:"l2_e1",text:"Asar @ Mosque",completed:!1,type:"mosque"},{id:"l2_e2",text:"Prepare Dinner",completed:!1,subtext:"Cook healthy",type:"food"},{id:"l2_e3",text:"Work Wrap-up",completed:!1,type:"work"}],night:[{id:"l2_n1",text:"Maghrib Prayer",completed:!1,type:"prayer"},{id:"l2_n2",text:"Recite Quran",completed:!1,type:"spirit"},{id:"l2_n3",text:"Active Leisure",completed:!1,subtext:"Film / Series",type:"film"},{id:"l2_n4",text:"Call Parents",completed:!1,type:"social-call"},{id:"l2_n5",text:"Isyak Prayer",completed:!1,type:"prayer"},{id:"l2_n6",text:"Time with Alia",completed:!1,type:"social"}]},3:{morning:[{id:"l3_m1",text:"Wake before Subuh",completed:!1,type:"core",highlight:!0},{id:"l3_m2",text:"Subuh @ MOSQUE",completed:!1,type:"mosque"},{id:"l3_m3",text:"Hard Workout",completed:!1,subtext:"NON-NEGOTIABLE",type:"fitness-hard"},{id:"l3_m4",text:"Bath & Brunch",completed:!1,type:"restore"}],work_block:[{id:"l3_w1",text:"Degree Work",completed:!1,subtext:"Deep focus",type:"work"},{id:"l3_w2",text:"Side Project",completed:!1,subtext:"Build & Ship",type:"code"}],afternoon:[{id:"l3_a1",text:"Zohor @ MOSQUE",completed:!1,type:"mosque"},{id:"l3_a2",text:"Check in w/ Alia",completed:!1,type:"heart-sm"},{id:"l3_a3",text:"Chores",completed:!1,type:"home"},{id:"l3_a4",text:"Afternoon Work",completed:!1,type:"work"}],evening:[{id:"l3_e1",text:"Asar @ MOSQUE",completed:!1,type:"mosque"},{id:"l3_e2",text:"Prepare Dinner",completed:!1,type:"food"},{id:"l3_e3",text:"Work Wrap-up",completed:!1,type:"work"}],night:[{id:"l3_n1",text:"Maghrib @ MOSQUE",completed:!1,type:"mosque"},{id:"l3_n2",text:"Recite Quran",completed:!1,type:"spirit"},{id:"l3_n3",text:"EXTRA WORK",completed:!1,subtext:"No games. Pure progress.",type:"grind"},{id:"l3_n4",text:"Isyak @ MOSQUE",completed:!1,type:"mosque"},{id:"l3_n5",text:"Time with Alia",completed:!1,type:"social"}]}};
 
             const [tasks, setTasks] = useState(() => {
                 const saved = localStorage.getItem(`khaiRoutine_v2_L${level}`);
@@ -173,16 +158,12 @@
                 }
             };
 
-            // Calculate progress safely inside the component
             const calculateProgress = () => {
                 let total = 0, completed = 0;
                 if (tasks) {
                     Object.values(tasks).forEach(section => {
                         if (Array.isArray(section)) {
-                            section.forEach(task => { 
-                                total++; 
-                                if (task.completed) completed++; 
-                            });
+                            section.forEach(task => { total++; if (task.completed) completed++; });
                         }
                     });
                 }
@@ -192,7 +173,11 @@
             const progress = calculateProgress();
 
             return e('div', { className: "min-h-screen font-sans pb-24" },
-                e('div', { className: "bg-white shadow-sm sticky top-0 z-10" },
+                // HEADER FIX: Padding = Safe Area (or 20px) + Extra 20px
+                e('div', { 
+                    className: "bg-white shadow-sm sticky top-0 z-10",
+                    style: { paddingTop: "max(25px, env(safe-area-inset-top))" } 
+                },
                     e('div', { className: "max-w-md mx-auto px-4 pt-4 pb-2" },
                         e('div', { className: "flex justify-between items-center mb-4" },
                             e('div', null,
@@ -201,7 +186,6 @@
                             ),
                             e('button', { onClick: resetDay, className: "p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors" }, e(RefreshCw, { size: 18, className: "text-slate-600" }))
                         ),
-                        // INSTALL BUTTON - ONLY SHOWS IF AVAILABLE
                         deferredPrompt && e('button', {
                             onClick: handleInstallClick,
                             className: "w-full mb-3 bg-indigo-600 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-indigo-700 transition-colors"
@@ -226,14 +210,14 @@
                     tasks.night && e(Section, { title: "Night", icon: Moon, colorClass: level === 3 ? "bg-purple-100" : "bg-indigo-100", dataKey: "night", items: tasks.night, onToggle: toggleTask }),
                     e('div', { className: "text-center p-6 text-slate-400 text-xs" }, e('p', null, level === 1 ? '"Consistency > Intensity"' : level === 2 ? '"Environment shapes discipline."' : '"No excuses. Pure execution."'))
                 ),
-                e('div', { className: "fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-2 z-50" },
+                e('div', { className: "fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-2 z-50 pb-safe", style: { paddingBottom: "env(safe-area-inset-bottom)" } },
                     e('div', { className: "max-w-md mx-auto flex justify-around" },
                         e('button', { className: "flex flex-col items-center p-2 rounded-xl transition-all text-blue-600 bg-blue-50" }, e(ListTodo, { size: 24 }), e('span', { className: "text-[10px] font-bold mt-1" }, "ROUTINE")),
                         e('a', { href: "goals.html", className: "flex flex-col items-center p-2 rounded-xl transition-all text-slate-400 hover:text-indigo-600" }, e(Award, { size: 24 }), e('span', { className: "text-[10px] font-bold mt-1" }, "GOALS"))
                     )
                 ),
                 // DEBUG STATUS
-                e('div', { className: "fixed bottom-14 right-2 text-[8px] text-slate-300 pointer-events-none" }, "SW Status: " + ('serviceWorker' in navigator ? 'Active' : 'Not Supported'))
+                e('div', { className: "fixed bottom-20 right-2 text-[8px] text-slate-300 pointer-events-none" }, "SW Status: " + ('serviceWorker' in navigator ? 'Active' : 'Not Supported'))
             );
         };
 
